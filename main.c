@@ -1,9 +1,43 @@
 #include <Pixy.h>
 
+Pixy2 pixy;
+
+// Color signatures
+const uint16_t yellowSignature = 1;
+const uint16_t redSignature = 2;
+
+// Target color
+uint16_t targetColor = yellowSignature;
+
+// Ball position
+int ballX, ballY;
+
+
 // Function to read data from the Pixy camera and send it to the computer over the serial port
 void readPixyData() {
-    // Read the number of blocks detected by the Pixy camera
-    int blocks = Pixy.getBlocks();
+    // Get block data for target color
+    pixy.ccc.getBlocks();
+    int numBlocks = pixy.ccc.numBlocks;
+
+    // If no blocks detected, return
+    if (numBlocks == 0) {
+        return;
+    }
+
+    // Search for target color
+    for (int i = 0; i < numBlocks; i++) {
+        if (pixy.ccc.blocks[i].signature == targetColor) {
+            ballX = pixy.ccc.blocks[i].x;
+            ballY = pixy.ccc.blocks[i].y;
+            break;
+        }
+    }
+
+    // If target color not found, return
+    if (ballX == 0 && ballY == 0) {
+        Serial.print("target Color not found")
+        return;
+    }
 
     // If at least one block is detected, extract the position and size of the first block
     if (blocks) {
